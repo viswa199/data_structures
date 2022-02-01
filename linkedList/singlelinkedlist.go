@@ -1,4 +1,4 @@
-package linkedlistgo
+package linkedlist
 
 import "fmt"
 
@@ -9,7 +9,7 @@ type Node struct {
 
 type Single struct {
 	Head   *Node
-	Length int
+	length int
 }
 
 func (l *Single) Delete(data int){
@@ -24,25 +24,26 @@ func (l *Single) Delete(data int){
 				if temp.Next.Data==data{
 					temp.Next=temp.Next.Next
 					fmt.Println("Element Deleted")
-					break
+					return
 				}
 				temp=temp.Next
 			}
 		}
 	}
+	fmt.Println("Sorry, Element not found")
 }
 
 func (l *Single) Insert(data int) {
 	if l.Head == nil {
 		l.Head = new(Node)
 		l.Head.Data = data
-		l.Length++
+		l.length++
 	}else{
 		temp:=l.Head
 		l.Head=new(Node)
 		l.Head.Data=data
 		l.Head.Next=temp 
-		l.Length++
+		l.length++
 	}
 }
 
@@ -62,4 +63,8 @@ func (l *Single) Display() {
 		i=i.Next
 	}
 	fmt.Println()
+}
+
+func (l *Single) Len() int{
+	return l.length
 }
