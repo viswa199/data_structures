@@ -1,66 +1,100 @@
 package graph
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 type Graph struct {
 	Vertices []*Vertex
 }
 
 type Vertex struct {
-	Key      string
-	Adjacent []*Vertex
+	Key           interface{}
+	Adjacent      map[*Vertex]uint16
+	IncomingNodes int
 }
 
-func (g *Graph) AddVertex(key string) error {
-	if !Contains(g.Vertices, key) {
-		g.Vertices = append(g.Vertices, &Vertex{Key: key})
-		return nil
+func (graph *Graph) AddVertex(key interface{}) {
+	graph.Vertices = append(graph.Vertices, &Vertex{Key: key})
+}
+
+func (graph *Graph) Print() {
+	for i, v := range graph.Vertices {
+		fmt.Printf("%d:%v\n", i+1, v.Key)
 	}
-	return fmt.Errorf("%v ", "DUPLICATE VALUES ARE NOT ALLOWED")
 }
 
-func (g *Graph) Print() {
-	for _, v := range g.Vertices {
-		fmt.Printf("\nVertex %v:", v.Key)
-		for _, a := range v.Adjacent {
-			fmt.Printf("%v ", a.Key)
+func (graph *Graph) Neighbours(key interface{}) {
+	node := graph.contains(key)
+	if node == nil {
+		panic("data doesn't exist")
+	}
+	for keys := range node.Adjacent {
+		fmt.Println(keys.Key)
+	}
+}
+
+func (graph *Graph) AddEdge(source, destination interface{}, weight uint16) error {
+	source_node := graph.contains(source)
+	destination_node := graph.contains(destination)
+	destination_node.IncomingNodes += 1
+
+	if source_node != nil && destination_node != nil {
+		if source_node.Adjacent == nil {
+			source_node.Adjacent = make(map[*Vertex]uint16)
 		}
-	}
-}
-
-func Contains(s []*Vertex, key string) bool {
-	for _, v := range s {
-		if v.Key == key {
-			return true
+		for keys := range source_node.Adjacent {
+			if keys == destination_node {
+				return fmt.Errorf("%v edge is already there.\n", destination)
+			}
 		}
+		source_node.Adjacent[destination_node] = weight
 	}
-	return false
+	return nil
 }
 
-func (g *Graph) AddEdge(from, to string) error {
-	fromVertex := g.getVertex(from)
-	toVertex := g.getVertex(to)
-	if fromVertex == nil || toVertex == nil {
-		err := fmt.Errorf("NODES ARE NOT FOUND.")
-		return err
-	} else if Contains(fromVertex.Adjacent, to) {
-		err := fmt.Errorf("EDGE ALREADY IS THERE.")
-		return err
-	} else {
-		fromVertex.Adjacent = append(fromVertex.Adjacent, toVertex)
-		return nil
-	}
-}
-
-func (g *Graph) getVertex(key string) *Vertex {
-	for _, v := range g.Vertices {
-		if v.Key == key {
-			return v
+func (graph Graph) contains(key interface{}) *Vertex {
+	for i := 0; i < len(graph.Vertices); i++ {
+		if graph.Vertices[i].Key == key {
+			return graph.Vertices[i]
 		}
 	}
 	return nil
 }
 
-func (g *Graph) NodeCount() int {
-	return len(g.Vertices)
+func (graph *Graph) createVisited() map[*Vertex]bool {
+	visited := make(map[*Vertex]bool)
+	for i := 0; i < len(graph.Vertices); i++ {
+		visited[graph.Vertices[i]] = false
+	}
+	return visited
+}
+
+func (graph *Graph) createUnVisited() map[*Vertex]bool {
+	unvisited := make(map[*Vertex]bool)
+	for i := 0; i < len(graph.Vertices); i++ {
+		unvisited[graph.Vertices[i]] = true
+	}
+	return unvisited
+}
+
+func (graph *Graph) Length() int {
+	return len(graph.Vertices)
+}
+
+func (graph *Graph) IncomingNodes() map[*Vertex]int {
+	dict := make(map[*Vertex]int, 0)
+	for _, v := range graph.Vertices {
+		dict[v] = v.IncomingNodes
+	}
+	return dict
+}
+
+func (graph *Graph) createDistance() map[*Vertex]uint16 {
+	dist := make(map[*Vertex]uint16, 0)
+	for _, v := range graph.Vertices {
+		dist[v] = math.MaxUint16
+	}
+	return dist
 }
